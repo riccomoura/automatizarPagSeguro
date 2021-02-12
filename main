@@ -1,0 +1,48 @@
+import pandas as pd
+
+tabela_clientes = pd.read_excel("Clientes Pagamento.xlsx", dtype={"Cliente": object})
+display(tabela_clientes)
+
+from selenium import webdriver
+
+navegador = webdriver.Chrome()
+navegador.get("https://acesso.pagseguro.uol.com.br/")
+
+navegador.find_element_by_id("user").send_keys("usuario@gmail.com")
+navegador.find_element_by_id("password").send_keys("123456")
+
+navegador.find_element_by_xpath('//*[@id="__next"]/div/div/main/div/div/div/form/div/div/div/div/div[3]').click()
+time.sleep(5)
+
+for linha in tabela_clientes.index:
+    divida = tabela_clientes.loc[linha, "Valor Total Devido"] - tabela_clientes.loc[linha, "Valor Pago"]
+    if divida > 0:
+        #Ir para página de pagamento
+        navegador.get("https://pagseguro.uol.com.br/operations/charging/create.jhtml")
+        time.sleep(5)    
+
+        email = tabela_clientes.loc[linha, "Email"]
+        valor = dívida
+        nome = tabela_clientes.loc[linha, "Nome"]
+
+
+        #preencher email
+        navegador.find_element_by_xpath('//*[@id="newRequestForm"]/div[1]/section[1]/div/fieldset[1]/input').send_keys(email)
+
+        #nome
+        navegador.find_element_by_xpath('//*[@id="newRequestForm"]/div[1]/section[1]/div/fieldset[2]/input').send_keys(nome)
+
+        #descrição
+        navegador.find_element_by_xpath('//*[@id="newRequestForm"]/div[1]/selection[2]/div/fieldset[1]/input').send_keys("Cobrança Pagamento Atrasado")
+
+        #campo valor
+        texto_valor = f"{valor:.2f}"
+        navegador.find_element_by_xpath('//*[@id="newRequestForm"]/div[1]/selection[2]/div/fieldset[2]/input').send_keys(texto_valor)
+
+        #Clicar no botão
+        navegador.find_element_by_xpath('//*[@id="sendNewCharging"]').click()
+        time.sleep(5)
+
+        #Clicar no botão de confirmação
+        navegador.find_element_by_xpath('//*[@id="buttonConfirmSubmit"]').click()
+        time.sleep(5)
